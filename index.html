@@ -1342,19 +1342,30 @@ function checkMCQ(stepIdx, chosen) {
   if (GS.quizAnswered.has(stepIdx)) return;
   const step = MISSION.steps[stepIdx];
   const correct = chosen === step.challenge.correct;
-  step.challenge.options.forEach((_,i) => {
-    const btn = document.getElementById(`opt-${stepIdx}-${i}`);
-    if (!btn) return;
-    btn.disabled = true;
-    if (i === step.challenge.correct) btn.classList.add('correct');
-    else if (i === chosen && !correct) btn.classList.add('wrong');
-  });
   if (correct) {
+    // Lock all buttons and mark correct
+    step.challenge.options.forEach((_,i) => {
+      const btn = document.getElementById(`opt-${stepIdx}-${i}`);
+      if (!btn) return;
+      btn.disabled = true;
+      if (i === step.challenge.correct) btn.classList.add('correct');
+    });
     awardXP(step.xp, true);
     GS.quizAnswered.add(stepIdx);
     maybeCompleteStep(stepIdx);
   } else {
+    // Just shake the wrong button, then let student try again
     loseLife();
+    const wrongBtn = document.getElementById(`opt-${stepIdx}-${chosen}`);
+    if (wrongBtn) {
+      wrongBtn.disabled = true;
+      wrongBtn.classList.add('wrong');
+      setTimeout(() => {
+        wrongBtn.classList.remove('wrong');
+        wrongBtn.disabled = true; // keep this one disabled — can't re-pick same wrong answer
+        wrongBtn.style.opacity = '0.4';
+      }, 800);
+    }
   }
 }
 
